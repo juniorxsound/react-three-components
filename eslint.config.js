@@ -19,5 +19,9 @@ export default defineConfig([
       ecmaVersion: 2020,
       globals: globals.browser,
     },
+    rules: {
+      // Disable immutability rule - it incorrectly flags DOM element style modifications
+      'react-hooks/immutability': 'off',
+    },
   },
 ])

@@ -144,7 +144,9 @@ const LinearCarouselBase = forwardRef<LinearCarouselRef, LinearCarouselProps>(
         if (!active && last && e.pointerId != null) {
           try {
             gl.domElement.releasePointerCapture(e.pointerId);
-          } catch {}
+          } catch {
+            // Pointer may already be released
+          }
           gl.domElement.style.cursor = "grab";
         }
 

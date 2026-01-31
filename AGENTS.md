@@ -40,6 +40,7 @@ src/
 ## Development Commands
 
 ```bash
+nvm use              # Switch to Node 24 (uses .nvmrc)
 npm run dev          # Start Storybook dev server (port 6006)
 npm run build        # Build library (tsc + vite + declarations)
 npm run test         # Run tests in watch mode
@@ -187,6 +188,44 @@ export const Basic: Story = {
 4. Export from `src/index.ts`
 5. Write tests and stories
 6. Run `npm run lint` and `npm run test:run`
+
+## CI/CD
+
+### Continuous Integration
+
+Every push/PR runs (`.github/workflows/ci.yml`):
+- Lint (`npm run lint`)
+- Test (`npm run test:run`)
+- Build (`npm run build`)
+
+### Publishing to npm
+
+Uses **npm trusted publishers** (OIDC) - no tokens needed. Configured in `.github/workflows/publish.yml`.
+
+**Requirements:**
+- Node 24+ (npm 11.5.1+ required for trusted publishers)
+- Trusted publisher configured on npmjs.com
+
+**Release workflow:**
+```bash
+# Bump version, run checks, push tag
+npm run release:patch   # 0.1.0 → 0.1.1
+npm run release:minor   # 0.1.0 → 0.2.0
+npm run release:major   # 0.1.0 → 1.0.0
+
+# Then create GitHub Release from the tag
+# → Triggers automatic npm publish with provenance
+```
+
+**Release scripts run:** lint → test → build → version bump → git push + tags
+
+### Trusted Publisher Setup (one-time)
+
+1. First publish manually: `npm login && npm publish --access public`
+2. Configure on npmjs.com → Package Settings → Trusted Publishers:
+   - Owner: `juniorxsound`
+   - Repository: `react-three-components`
+   - Workflow: `publish.yml`
 
 ## Peer Dependencies
 

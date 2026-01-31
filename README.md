@@ -214,6 +214,31 @@ Fine-tune drag behavior:
 >
 ```
 
+## Contributing
+
+### Development
+
+```bash
+nvm use              # Switch to Node 24 (uses .nvmrc)
+npm install          # Install dependencies
+npm run dev          # Start Storybook dev server
+npm run test         # Run tests in watch mode
+npm run lint         # Run ESLint
+npm run build        # Build the library
+```
+
+### Releasing
+
+This package uses [npm trusted publishers](https://docs.npmjs.com/trusted-publishers) for secure, token-free publishing.
+
+```bash
+npm run release:patch   # 0.1.0 → 0.1.1
+npm run release:minor   # 0.1.0 → 0.2.0
+npm run release:major   # 0.1.0 → 1.0.0
+```
+
+Then create a GitHub Release from the tag - this triggers automatic npm publish with provenance.
+
 ## License
 
 MIT

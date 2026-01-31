@@ -1,6 +1,6 @@
 {
-  "name": "react-three-components",
-  "version": "0.1.5",
+  "name": "@juniorxsound/react-three-components",
+  "version": "0.1.0",
   "description": "3D carousel components for React Three Fiber",
   "author": "juniorxsound",
   "license": "MIT",

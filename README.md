@@ -1,15 +1,15 @@
-# react-three-components
+# @juniorxsound/react-three-components
 
-[![npm version](https://img.shields.io/npm/v/react-three-components.svg)](https://www.npmjs.com/package/react-three-components)
+[![npm version](https://img.shields.io/npm/v/@juniorxsound/react-three-components.svg)](https://www.npmjs.com/package/@juniorxsound/react-three-components)
 [![CI](https://github.com/juniorxsound/react-three-components/actions/workflows/ci.yml/badge.svg)](https://github.com/juniorxsound/react-three-components/actions/workflows/ci.yml)
-[![license](https://img.shields.io/npm/l/react-three-components.svg)](https://github.com/juniorxsound/react-three-components/blob/main/LICENSE)
+[![license](https://img.shields.io/npm/l/@juniorxsound/react-three-components.svg)](https://github.com/juniorxsound/react-three-components/blob/main/LICENSE)
 
 3D carousel components for React Three Fiber with gesture support.
 
 ## Installation
 
 ```bash
-npm install react-three-components
+npm install @juniorxsound/react-three-components
 ```
 
 ### Peer Dependencies
@@ -28,7 +28,7 @@ A 3D carousel that arranges items in a circle and rotates around an axis.
 
 ```tsx
 import { Canvas } from "@react-three/fiber";
-import { CircularCarousel, useCarouselContext } from "react-three-components";
+import { CircularCarousel, useCarouselContext } from "@juniorxsound/react-three-components";
 
 function Item({ index }: { index: number }) {
   const { activeIndex } = useCarouselContext();
@@ -107,7 +107,7 @@ A carousel that slides items linearly (horizontally or vertically).
 
 ```tsx
 import { Canvas } from "@react-three/fiber";
-import { LinearCarousel, useLinearCarouselContext } from "react-three-components";
+import { LinearCarousel, useLinearCarouselContext } from "@juniorxsound/react-three-components";
 
 function Item({ index }: { index: number }) {
   const { activeIndex } = useLinearCarouselContext();
@@ -188,12 +188,12 @@ Access carousel state from any child component:
 
 ```tsx
 // For CircularCarousel
-import { useCarouselContext } from "react-three-components";
+import { useCarouselContext } from "@juniorxsound/react-three-components";
 
 const { activeIndex, count, next, prev, goTo } = useCarouselContext();
 
 // For LinearCarousel
-import { useLinearCarouselContext } from "react-three-components";
+import { useLinearCarouselContext } from "@juniorxsound/react-three-components";
 
 const { activeIndex, count, next, prev, goTo } = useLinearCarouselContext();
 ```

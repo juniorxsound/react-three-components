@@ -1,7 +1,22 @@
 {
   "name": "react-three-components",
-  "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
+  "description": "3D carousel components for React Three Fiber",
+  "author": "juniorxsound",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/juniorxsound/react-three-components"
+  },
+  "keywords": [
+    "react",
+    "three",
+    "threejs",
+    "r3f",
+    "react-three-fiber",
+    "carousel",
+    "3d"
+  ],
   "type": "module",
   "files": [
     "dist"

@@ -1,75 +1,219 @@
-# React + TypeScript + Vite
+# react-three-components
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+[![npm version](https://img.shields.io/npm/v/react-three-components.svg)](https://www.npmjs.com/package/react-three-components)
+[![CI](https://github.com/juniorxsound/react-three-components/actions/workflows/ci.yml/badge.svg)](https://github.com/juniorxsound/react-three-components/actions/workflows/ci.yml)
+[![license](https://img.shields.io/npm/l/react-three-components.svg)](https://github.com/juniorxsound/react-three-components/blob/main/LICENSE)
 
-Currently, two official plugins are available:
+3D carousel components for React Three Fiber with gesture support.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Installation
 
-## React Compiler
-
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
-
-Note: This will impact Vite dev & build performances.
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install react-three-components
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Peer Dependencies
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+This library requires the following peer dependencies:
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install react react-dom three @react-three/fiber @react-spring/web @use-gesture/react
 ```
+
+## Components
+
+### CircularCarousel
+
+A 3D carousel that arranges items in a circle and rotates around an axis.
+
+```tsx
+import { Canvas } from "@react-three/fiber";
+import { CircularCarousel, useCarouselContext } from "react-three-components";
+
+function Item({ index }: { index: number }) {
+  const { activeIndex } = useCarouselContext();
+  const isActive = index === activeIndex;
+  
+  return (
+    <mesh>
+      <boxGeometry args={[1, 1, 1]} />
+      <meshStandardMaterial color={isActive ? "hotpink" : "gray"} />
+    </mesh>
+  );
+}
+
+function App() {
+  return (
+    <Canvas>
+      <CircularCarousel radius={3} onIndexChange={(i) => console.log(i)}>
+        <Item index={0} />
+        <Item index={1} />
+        <Item index={2} />
+        <Item index={3} />
+      </CircularCarousel>
+    </Canvas>
+  );
+}
+```
+
+#### Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `children` | `ReactNode` | required | Carousel items |
+| `radius` | `number` | `3` | Distance from center to items |
+| `axis` | `"x" \| "y" \| "z"` | `"y"` | Rotation axis |
+| `index` | `number` | - | Controlled active index |
+| `defaultIndex` | `number` | `0` | Initial index (uncontrolled) |
+| `onIndexChange` | `(index: number) => void` | - | Called when index changes |
+| `dragEnabled` | `boolean` | `true` | Enable drag gestures |
+| `dragSensitivity` | `number` | auto | Drag sensitivity |
+| `dragAxis` | `"x" \| "y"` | `"x"` | Drag gesture axis |
+| `dragConfig` | `DragConfig` | - | Additional drag options |
+
+#### Ref Methods
+
+```tsx
+const ref = useRef<CircularCarouselRef>(null);
+
+ref.current.next();      // Go to next item
+ref.current.prev();      // Go to previous item
+ref.current.goTo(2);     // Go to specific index
+```
+
+#### With Navigation Triggers
+
+```tsx
+<CircularCarousel>
+  <Item index={0} />
+  <Item index={1} />
+  <Item index={2} />
+  
+  <CircularCarousel.PrevTrigger position={[-2, 0, 0]}>
+    <mesh><boxGeometry /><meshBasicMaterial color="blue" /></mesh>
+  </CircularCarousel.PrevTrigger>
+  
+  <CircularCarousel.NextTrigger position={[2, 0, 0]}>
+    <mesh><boxGeometry /><meshBasicMaterial color="red" /></mesh>
+  </CircularCarousel.NextTrigger>
+</CircularCarousel>
+```
+
+---
+
+### LinearCarousel
+
+A carousel that slides items linearly (horizontally or vertically).
+
+```tsx
+import { Canvas } from "@react-three/fiber";
+import { LinearCarousel, useLinearCarouselContext } from "react-three-components";
+
+function Item({ index }: { index: number }) {
+  const { activeIndex } = useLinearCarouselContext();
+  const isActive = index === activeIndex;
+  
+  return (
+    <mesh scale={isActive ? 1.2 : 1}>
+      <planeGeometry args={[2, 1.5]} />
+      <meshBasicMaterial color={isActive ? "hotpink" : "gray"} />
+    </mesh>
+  );
+}
+
+function App() {
+  return (
+    <Canvas>
+      <LinearCarousel gap={0.5} direction="horizontal">
+        <Item index={0} />
+        <Item index={1} />
+        <Item index={2} />
+        <Item index={3} />
+      </LinearCarousel>
+    </Canvas>
+  );
+}
+```
+
+#### Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `children` | `ReactNode` | required | Carousel items |
+| `gap` | `number` | `0.2` | Space between items |
+| `direction` | `"horizontal" \| "vertical"` | `"horizontal"` | Slide direction |
+| `index` | `number` | - | Controlled active index |
+| `defaultIndex` | `number` | `0` | Initial index (uncontrolled) |
+| `onIndexChange` | `(index: number) => void` | - | Called when index changes |
+| `dragEnabled` | `boolean` | `true` | Enable drag gestures |
+| `dragSensitivity` | `number` | `150` | Drag sensitivity |
+| `dragAxis` | `"x" \| "y"` | auto | Drag axis (derived from direction) |
+| `dragConfig` | `DragConfig` | - | Additional drag options |
+
+#### Ref Methods
+
+```tsx
+const ref = useRef<LinearCarouselRef>(null);
+
+ref.current.next();      // Go to next item (bounded)
+ref.current.prev();      // Go to previous item (bounded)
+ref.current.goTo(2);     // Go to specific index
+```
+
+> Note: LinearCarousel is bounded (doesn't wrap around), unlike CircularCarousel which loops infinitely.
+
+#### With Navigation Triggers
+
+```tsx
+<LinearCarousel>
+  <Item index={0} />
+  <Item index={1} />
+  <Item index={2} />
+  
+  <LinearCarousel.PrevTrigger position={[-3, 0, 0]}>
+    <PrevButton />
+  </LinearCarousel.PrevTrigger>
+  
+  <LinearCarousel.NextTrigger position={[3, 0, 0]}>
+    <NextButton />
+  </LinearCarousel.NextTrigger>
+</LinearCarousel>
+```
+
+---
+
+## Context Hooks
+
+Access carousel state from any child component:
+
+```tsx
+// For CircularCarousel
+import { useCarouselContext } from "react-three-components";
+
+const { activeIndex, count, next, prev, goTo } = useCarouselContext();
+
+// For LinearCarousel
+import { useLinearCarouselContext } from "react-three-components";
+
+const { activeIndex, count, next, prev, goTo } = useLinearCarouselContext();
+```
+
+## DragConfig
+
+Fine-tune drag behavior:
+
+```tsx
+<CircularCarousel
+  dragConfig={{
+    axis: "x",                    // Constrain to axis
+    threshold: 10,                // Pixels before drag starts
+    rubberband: 0.2,              // Elastic effect at bounds
+    touchAction: "pan-y",         // CSS touch-action
+    pointer: { touch: true },     // Pointer options
+  }}
+>
+```
+
+## License
+
+MIT

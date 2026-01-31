@@ -38,7 +38,10 @@
     "lint": "eslint .",
     "storybook": "storybook dev -p 6006",
     "test": "vitest",
-    "test:run": "vitest run"
+    "test:run": "vitest run",
+    "release:patch": "npm run lint && npm run test:run && npm run build && npm version patch -m 'Release %s' && git push && git push --tags",
+    "release:minor": "npm run lint && npm run test:run && npm run build && npm version minor -m 'Release %s' && git push && git push --tags",
+    "release:major": "npm run lint && npm run test:run && npm run build && npm version major -m 'Release %s' && git push && git push --tags"
   },
   "peerDependencies": {
     "react": ">=18",

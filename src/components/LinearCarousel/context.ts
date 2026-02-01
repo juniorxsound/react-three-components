@@ -1,15 +1,9 @@
-import { createContext, useContext } from "react";
-import type { LinearCarouselContextValue } from "./types";
+import { CarouselContext, useCarouselContext } from "../../hooks";
 
-export const LinearCarouselContext =
-  createContext<LinearCarouselContextValue | null>(null);
+// Re-export the shared context for use in this component
+export { CarouselContext as LinearCarouselContext };
 
-export function useLinearCarouselContext(): LinearCarouselContextValue {
-  const ctx = useContext(LinearCarouselContext);
-  if (!ctx) {
-    throw new Error(
-      "LinearCarousel compound components must be used within LinearCarousel"
-    );
-  }
-  return ctx;
+// Wrapper with component-specific error message
+export function useLinearCarouselContext() {
+  return useCarouselContext("LinearCarousel");
 }

@@ -1,9 +1,5 @@
 import { TAU } from "./constants";
 
-export function clamp(value: number, min: number, max: number): number {
-  return Math.max(min, Math.min(max, value));
-}
-
 export function getItemTransform(
   index: number,
   count: number,

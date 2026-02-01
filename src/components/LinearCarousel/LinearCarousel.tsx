@@ -8,13 +8,9 @@ import {
   forwardRef,
   useEffect,
   Children,
-  type ForwardRefExoticComponent,
   type ReactElement,
-  type RefAttributes,
 } from "react";
-import { useFrame, useThree } from "@react-three/fiber";
-import { useSpring } from "@react-spring/web";
-import { useDrag } from "@use-gesture/react";
+import { useFrame } from "@react-three/fiber";
 import type { Group } from "three";
 
 import {
@@ -24,23 +20,18 @@ import {
   SPRING_CONFIG,
   DRAG_SPRING_CONFIG,
 } from "./constants";
-import { clamp, getItemPosition } from "./utils";
+import { clamp } from "../../utils";
+import { getItemPosition } from "./utils";
 import { LinearCarouselContext } from "./context";
 import {
   LinearCarouselNextTrigger,
   LinearCarouselPrevTrigger,
 } from "./LinearCarouselTriggers";
+import { useCarouselDrag } from "../../hooks";
 import type { LinearCarouselProps, LinearCarouselRef } from "./types";
 
-type LinearCarouselComponent = ForwardRefExoticComponent<
-  LinearCarouselProps & RefAttributes<LinearCarouselRef>
-> & {
-  NextTrigger: typeof LinearCarouselNextTrigger;
-  PrevTrigger: typeof LinearCarouselPrevTrigger;
-};
-
-const LinearCarouselBase = forwardRef<LinearCarouselRef, LinearCarouselProps>(
-  function LinearCarousel(
+export const LinearCarousel = Object.assign(
+  forwardRef<LinearCarouselRef, LinearCarouselProps>(function LinearCarousel(
     {
       children,
       gap = DEFAULT_GAP,
@@ -60,7 +51,11 @@ const LinearCarouselBase = forwardRef<LinearCarouselRef, LinearCarouselProps>(
     const isControlled = controlledIndex !== undefined;
     const activeIndex = isControlled ? controlledIndex : internalIndex;
     const currentIndexRef = useRef(activeIndex);
-    currentIndexRef.current = activeIndex;
+
+    // Keep ref in sync with activeIndex
+    useEffect(() => {
+      currentIndexRef.current = activeIndex;
+    }, [activeIndex]);
 
     const allChildren = useMemo(() => Children.toArray(children), [children]);
     const items = allChildren.filter(
@@ -80,36 +75,77 @@ const LinearCarouselBase = forwardRef<LinearCarouselRef, LinearCarouselProps>(
     const rootRef = useRef<Group>(null);
     const itemSpacing = 1 + gap;
     const dragSensitivity = dragSensitivityProp ?? DEFAULT_DRAG_SENSITIVITY;
+    const dragAxis = dragAxisProp ?? (direction === "horizontal" ? "x" : "y");
 
-    const [{ offset }, api] = useSpring(() => ({ offset: 0 }));
-    const apiRef = useRef(api);
-    apiRef.current = api;
-    const isDraggingRef = useRef(false);
-    const currentOffsetRef = useRef(0);
-    const dragStartOffsetRef = useRef(0);
+    // Callbacks for the drag hook
+    const calculateIndexFromOffset = useCallback(
+      (offset: number) => Math.round(-offset / itemSpacing),
+      [itemSpacing]
+    );
+
+    const calculateTargetIndex = useCallback(
+      (currentOffset: number, startIndex: number) => {
+        let targetIndex = Math.round(-currentOffset / itemSpacing);
+        targetIndex = clamp(targetIndex, startIndex - 1, startIndex + 1);
+
+        if (infinite) {
+          return ((targetIndex % count) + count) % count;
+        }
+        return clamp(targetIndex, 0, count - 1);
+      },
+      [itemSpacing, infinite, count]
+    );
+
+    const calculateTargetOffset = useCallback(
+      (index: number) => -index * itemSpacing,
+      [itemSpacing]
+    );
+
+    const handleNavigate = useCallback(
+      (index: number) => {
+        currentIndexRef.current = index;
+        if (!isControlled) setInternalIndex(index);
+        onIndexChange?.(index);
+      },
+      [isControlled, onIndexChange]
+    );
+
+    const { offset, springApi, isDraggingRef, currentOffsetRef } =
+      useCarouselDrag({
+        count,
+        dragEnabled,
+        dragAxis,
+        dragSensitivity,
+        maxDragAmount: itemSpacing,
+        dragConfig,
+        springConfig: SPRING_CONFIG,
+        dragSpringConfig: DRAG_SPRING_CONFIG,
+        calculateIndexFromOffset,
+        calculateTargetIndex,
+        calculateTargetOffset,
+        onNavigate: handleNavigate,
+      });
 
     const goToIndex = useCallback(
       (nextIndex: number) => {
         if (count === 0) return;
-        
+
         let targetIndex: number;
         if (infinite) {
-          // Wrap around using modulo
           targetIndex = ((nextIndex % count) + count) % count;
         } else {
-          // Clamp to valid range (bounded)
           targetIndex = clamp(nextIndex, 0, count - 1);
         }
-        
+
         if (targetIndex === currentIndexRef.current) return;
         currentIndexRef.current = targetIndex;
         if (!isControlled) setInternalIndex(targetIndex);
         onIndexChange?.(targetIndex);
 
         const targetOffset = -targetIndex * itemSpacing;
-        apiRef.current.start({ offset: targetOffset, config: SPRING_CONFIG });
+        springApi.start({ offset: targetOffset, config: SPRING_CONFIG });
       },
-      [count, isControlled, onIndexChange, itemSpacing, infinite]
+      [count, isControlled, onIndexChange, itemSpacing, infinite, springApi]
     );
 
     const next = useCallback(() => {
@@ -132,110 +168,19 @@ const LinearCarouselBase = forwardRef<LinearCarouselRef, LinearCarouselProps>(
 
     useImperativeHandle(ref, () => ({ next, prev, goTo }), [next, prev, goTo]);
 
+    // Sync spring when activeIndex changes externally
     useEffect(() => {
       if (!isDraggingRef.current && count > 0) {
         const targetOffset = -activeIndex * itemSpacing;
-        apiRef.current.start({ offset: targetOffset, config: SPRING_CONFIG });
+        springApi.start({ offset: targetOffset, config: SPRING_CONFIG });
       }
-    }, [activeIndex, count, itemSpacing]);
+    }, [activeIndex, count, itemSpacing, springApi, isDraggingRef]);
 
-    const { gl } = useThree();
-    // Default drag axis based on direction, but allow override
-    const dragAxis = dragAxisProp ?? (direction === "horizontal" ? "x" : "y");
-
-    useDrag(
-      ({ active, movement: [mx, my], first, last, event }) => {
-        isDraggingRef.current = active;
-        const e = event as PointerEvent;
-        const movement = dragAxis === "x" ? mx : my;
-
-        if (active && first && e.pointerId != null) {
-          gl.domElement.setPointerCapture(e.pointerId);
-          gl.domElement.style.cursor = "grabbing";
-          dragStartOffsetRef.current = currentOffsetRef.current;
-        }
-        if (!active && last && e.pointerId != null) {
-          try {
-            gl.domElement.releasePointerCapture(e.pointerId);
-          } catch {
-            // Pointer may already be released
-          }
-          gl.domElement.style.cursor = "grab";
-        }
-
-        const baseOffset = first
-          ? currentOffsetRef.current
-          : dragStartOffsetRef.current;
-        const movementNum = Number(movement);
-        const dragOffset = Number.isFinite(movementNum)
-          ? clamp(movementNum / dragSensitivity, -itemSpacing, itemSpacing)
-          : 0;
-
-        if (active) {
-          apiRef.current.start({
-            offset: baseOffset + dragOffset,
-            config: DRAG_SPRING_CONFIG,
-          });
-        } else {
-          const current = currentIndexRef.current;
-          const currentOffset = baseOffset + dragOffset;
-
-          // Calculate target index from offset
-          let targetIndex = Math.round(-currentOffset / itemSpacing);
-          
-          // Clamp to one item distance from current
-          targetIndex = clamp(targetIndex, current - 1, current + 1);
-          
-          // Apply infinite wrapping or bounded clamping
-          let finalIndex: number;
-          if (infinite) {
-            finalIndex = ((targetIndex % count) + count) % count;
-          } else {
-            finalIndex = clamp(targetIndex, 0, count - 1);
-          }
-          
-          if (count === 0 || !Number.isFinite(finalIndex)) {
-            apiRef.current.start({ offset: baseOffset, config: SPRING_CONFIG });
-            return;
-          }
-
-          currentIndexRef.current = finalIndex;
-          if (!isControlled) setInternalIndex(finalIndex);
-          onIndexChange?.(finalIndex);
-
-          const targetOffset = -finalIndex * itemSpacing;
-          apiRef.current.start({ offset: targetOffset, config: SPRING_CONFIG });
-        }
-      },
-      {
-        target: gl.domElement,
-        enabled: dragEnabled,
-        pointer: dragConfig?.pointer ?? { touch: true, capture: true },
-        axis: dragConfig?.axis ?? dragAxis,
-        touchAction: dragConfig?.touchAction ?? "none",
-        threshold: dragConfig?.threshold,
-        rubberband: dragConfig?.rubberband,
-      }
-    );
-
-    useEffect(() => {
-      if (!dragEnabled) return;
-      const el = gl.domElement;
-      const prevTouchAction = el.style.touchAction;
-      const prevCursor = el.style.cursor;
-      el.style.touchAction = "none";
-      el.style.cursor = "grab";
-      return () => {
-        el.style.touchAction = prevTouchAction;
-        el.style.cursor = prevCursor;
-      };
-    }, [dragEnabled, gl.domElement]);
-
+    // Update position each frame
     useFrame(() => {
       if (!rootRef.current) return;
       const v = offset.get();
       currentOffsetRef.current = v;
-      // Apply offset to position based on direction
       if (direction === "horizontal") {
         rootRef.current.position.x = v;
       } else {
@@ -268,12 +213,9 @@ const LinearCarouselBase = forwardRef<LinearCarouselRef, LinearCarouselProps>(
         {triggers}
       </LinearCarouselContext.Provider>
     );
+  }),
+  {
+    NextTrigger: LinearCarouselNextTrigger,
+    PrevTrigger: LinearCarouselPrevTrigger,
   }
 );
-
-(LinearCarouselBase as LinearCarouselComponent).NextTrigger =
-  LinearCarouselNextTrigger;
-(LinearCarouselBase as LinearCarouselComponent).PrevTrigger =
-  LinearCarouselPrevTrigger;
-
-export const LinearCarousel = LinearCarouselBase as LinearCarouselComponent;

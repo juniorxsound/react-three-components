@@ -141,7 +141,7 @@ export const FloatingObjects: Story = {
     gap: 3,
     infinite: true,
   },
-  render: ({ itemCount: _itemCount, ...args }) => (
+  render: (args) => (
     <LinearCarousel {...args}>
       <LinearFloatingShape type="box" index={0} />
       <LinearFloatingShape type="sphere" index={1} />

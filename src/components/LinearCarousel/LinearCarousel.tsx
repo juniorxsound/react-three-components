@@ -52,6 +52,7 @@ const LinearCarouselBase = forwardRef<LinearCarouselRef, LinearCarouselProps>(
       dragSensitivity: dragSensitivityProp,
       dragAxis: dragAxisProp,
       dragConfig,
+      infinite = false,
     },
     ref
   ) {
@@ -89,31 +90,43 @@ const LinearCarouselBase = forwardRef<LinearCarouselRef, LinearCarouselProps>(
 
     const goToIndex = useCallback(
       (nextIndex: number) => {
-        // Clamp to valid range (bounded, not circular)
-        const clamped = clamp(nextIndex, 0, count - 1);
-        if (clamped === currentIndexRef.current) return;
-        currentIndexRef.current = clamped;
-        if (!isControlled) setInternalIndex(clamped);
-        onIndexChange?.(clamped);
+        if (count === 0) return;
+        
+        let targetIndex: number;
+        if (infinite) {
+          // Wrap around using modulo
+          targetIndex = ((nextIndex % count) + count) % count;
+        } else {
+          // Clamp to valid range (bounded)
+          targetIndex = clamp(nextIndex, 0, count - 1);
+        }
+        
+        if (targetIndex === currentIndexRef.current) return;
+        currentIndexRef.current = targetIndex;
+        if (!isControlled) setInternalIndex(targetIndex);
+        onIndexChange?.(targetIndex);
 
-        const targetOffset = -clamped * itemSpacing;
+        const targetOffset = -targetIndex * itemSpacing;
         apiRef.current.start({ offset: targetOffset, config: SPRING_CONFIG });
       },
-      [count, isControlled, onIndexChange, itemSpacing]
+      [count, isControlled, onIndexChange, itemSpacing, infinite]
     );
 
-    // Bounded navigation - no wrapping
     const next = useCallback(() => {
       if (count === 0) return;
-      const nextIdx = Math.min(currentIndexRef.current + 1, count - 1);
+      const nextIdx = infinite
+        ? (currentIndexRef.current + 1) % count
+        : Math.min(currentIndexRef.current + 1, count - 1);
       goToIndex(nextIdx);
-    }, [count, goToIndex]);
+    }, [count, goToIndex, infinite]);
 
     const prev = useCallback(() => {
       if (count === 0) return;
-      const prevIdx = Math.max(currentIndexRef.current - 1, 0);
+      const prevIdx = infinite
+        ? (currentIndexRef.current - 1 + count) % count
+        : Math.max(currentIndexRef.current - 1, 0);
       goToIndex(prevIdx);
-    }, [count, goToIndex]);
+    }, [count, goToIndex, infinite]);
 
     const goTo = useCallback((i: number) => goToIndex(i), [goToIndex]);
 
@@ -173,19 +186,24 @@ const LinearCarouselBase = forwardRef<LinearCarouselRef, LinearCarouselProps>(
           // Clamp to one item distance from current
           targetIndex = clamp(targetIndex, current - 1, current + 1);
           
-          // Clamp to valid range (bounded)
-          const clampedIndex = clamp(targetIndex, 0, count - 1);
+          // Apply infinite wrapping or bounded clamping
+          let finalIndex: number;
+          if (infinite) {
+            finalIndex = ((targetIndex % count) + count) % count;
+          } else {
+            finalIndex = clamp(targetIndex, 0, count - 1);
+          }
           
-          if (count === 0 || !Number.isFinite(clampedIndex)) {
+          if (count === 0 || !Number.isFinite(finalIndex)) {
             apiRef.current.start({ offset: baseOffset, config: SPRING_CONFIG });
             return;
           }
 
-          currentIndexRef.current = clampedIndex;
-          if (!isControlled) setInternalIndex(clampedIndex);
-          onIndexChange?.(clampedIndex);
+          currentIndexRef.current = finalIndex;
+          if (!isControlled) setInternalIndex(finalIndex);
+          onIndexChange?.(finalIndex);
 
-          const targetOffset = -clampedIndex * itemSpacing;
+          const targetOffset = -finalIndex * itemSpacing;
           apiRef.current.start({ offset: targetOffset, config: SPRING_CONFIG });
         }
       },

@@ -26,6 +26,8 @@ export type LinearCarouselProps = {
   dragAxis?: "x" | "y";
   /** Additional drag gesture configuration */
   dragConfig?: DragConfig;
+  /** When true, navigation wraps from last item to first and vice versa. Default: false */
+  infinite?: boolean;
 };
 
 export type LinearCarouselRef = {

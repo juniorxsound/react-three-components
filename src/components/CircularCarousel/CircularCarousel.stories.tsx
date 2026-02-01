@@ -6,6 +6,7 @@ import { useFrame } from "@react-three/fiber";
 import { DoubleSide, MathUtils, type Group } from "three";
 import { CircularCarousel } from "./CircularCarousel";
 import { useCarouselContext } from "./context";
+import { FloatingShape } from "../StorybookUtils";
 
 type StoryProps = React.ComponentProps<typeof CircularCarousel> & {
   itemCount: number;
@@ -60,7 +61,7 @@ function Item({ index }: { index: number }) {
 function PrevArrow() {
   const { prev } = useCarouselContext();
   return (
-    <Html center>
+    <Html center position={[-2.5, -3, 0]}>
       <span
         onClick={prev}
         style={{ fontSize: 32, cursor: "pointer", userSelect: "none" }}
@@ -74,7 +75,7 @@ function PrevArrow() {
 function NextArrow() {
   const { next } = useCarouselContext();
   return (
-    <Html center>
+    <Html center position={[2.5, -3, 0]}>
       <span
         onClick={next}
         style={{ fontSize: 32, cursor: "pointer", userSelect: "none" }}
@@ -101,10 +102,39 @@ export const WithTriggers: Story = {
       {Array.from({ length: itemCount ?? 6 }, (_, i) => (
         <Item key={i} index={i} />
       ))}
-      <CircularCarousel.PrevTrigger position={[-2.5, 0, 0]}>
+      <CircularCarousel.PrevTrigger>
         <PrevArrow />
       </CircularCarousel.PrevTrigger>
-      <CircularCarousel.NextTrigger position={[2.5, 0, 0]}>
+      <CircularCarousel.NextTrigger>
+        <NextArrow />
+      </CircularCarousel.NextTrigger>
+    </CircularCarousel>
+  ),
+};
+
+function CarouselFloatingShape({
+  type,
+  index,
+}: {
+  type: "box" | "sphere" | "cone";
+  index: number;
+}): React.ReactNode {
+  const { activeIndex } = useCarouselContext();
+  return <FloatingShape type={type} isActive={activeIndex === index} />;
+}
+
+export const FloatingObjects: Story = {
+  render: ({ itemCount, ...args }) => (
+    <CircularCarousel {...args}>
+      <CarouselFloatingShape type="box" index={0} />
+      <CarouselFloatingShape type="sphere" index={1} />
+      <CarouselFloatingShape type="cone" index={2} />
+
+      {/* Navigation triggers */}
+      <CircularCarousel.PrevTrigger>
+        <PrevArrow />
+      </CircularCarousel.PrevTrigger>
+      <CircularCarousel.NextTrigger>
         <NextArrow />
       </CircularCarousel.NextTrigger>
     </CircularCarousel>

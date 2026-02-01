@@ -4,7 +4,9 @@
 [![CI](https://github.com/juniorxsound/react-three-components/actions/workflows/ci.yml/badge.svg)](https://github.com/juniorxsound/react-three-components/actions/workflows/ci.yml)
 [![license](https://img.shields.io/npm/l/@juniorxsound/react-three-components.svg)](https://github.com/juniorxsound/react-three-components/blob/main/LICENSE)
 
-3D carousel components for React Three Fiber with gesture support.
+A personal set of reusable components for React Three Fiber 🪄
+
+> This library is a work in progress - if you find any issues, please report them [here](https://github.com/juniorxsound/react-three-components/issues). Please proceed with caution if you use this library in production.
 
 ## Installation
 
@@ -28,12 +30,15 @@ A 3D carousel that arranges items in a circle and rotates around an axis.
 
 ```tsx
 import { Canvas } from "@react-three/fiber";
-import { CircularCarousel, useCarouselContext } from "@juniorxsound/react-three-components";
+import {
+  CircularCarousel,
+  useCarouselContext,
+} from "@juniorxsound/react-three-components";
 
 function Item({ index }: { index: number }) {
   const { activeIndex } = useCarouselContext();
   const isActive = index === activeIndex;
-  
+
   return (
     <mesh>
       <boxGeometry args={[1, 1, 1]} />
@@ -58,27 +63,27 @@ function App() {
 
 #### Props
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `children` | `ReactNode` | required | Carousel items |
-| `radius` | `number` | `3` | Distance from center to items |
-| `axis` | `"x" \| "y" \| "z"` | `"y"` | Rotation axis |
-| `index` | `number` | - | Controlled active index |
-| `defaultIndex` | `number` | `0` | Initial index (uncontrolled) |
-| `onIndexChange` | `(index: number) => void` | - | Called when index changes |
-| `dragEnabled` | `boolean` | `true` | Enable drag gestures |
-| `dragSensitivity` | `number` | auto | Drag sensitivity |
-| `dragAxis` | `"x" \| "y"` | `"x"` | Drag gesture axis |
-| `dragConfig` | `DragConfig` | - | Additional drag options |
+| Prop              | Type                      | Default  | Description                   |
+| ----------------- | ------------------------- | -------- | ----------------------------- |
+| `children`        | `ReactNode`               | required | Carousel items                |
+| `radius`          | `number`                  | `3`      | Distance from center to items |
+| `axis`            | `"x" \| "y" \| "z"`       | `"y"`    | Rotation axis                 |
+| `index`           | `number`                  | -        | Controlled active index       |
+| `defaultIndex`    | `number`                  | `0`      | Initial index (uncontrolled)  |
+| `onIndexChange`   | `(index: number) => void` | -        | Called when index changes     |
+| `dragEnabled`     | `boolean`                 | `true`   | Enable drag gestures          |
+| `dragSensitivity` | `number`                  | auto     | Drag sensitivity              |
+| `dragAxis`        | `"x" \| "y"`              | `"x"`    | Drag gesture axis             |
+| `dragConfig`      | `DragConfig`              | -        | Additional drag options       |
 
 #### Ref Methods
 
 ```tsx
 const ref = useRef<CircularCarouselRef>(null);
 
-ref.current.next();      // Go to next item
-ref.current.prev();      // Go to previous item
-ref.current.goTo(2);     // Go to specific index
+ref.current.next(); // Go to next item
+ref.current.prev(); // Go to previous item
+ref.current.goTo(2); // Go to specific index
 ```
 
 #### With Navigation Triggers
@@ -88,13 +93,19 @@ ref.current.goTo(2);     // Go to specific index
   <Item index={0} />
   <Item index={1} />
   <Item index={2} />
-  
+
   <CircularCarousel.PrevTrigger position={[-2, 0, 0]}>
-    <mesh><boxGeometry /><meshBasicMaterial color="blue" /></mesh>
+    <mesh>
+      <boxGeometry />
+      <meshBasicMaterial color="blue" />
+    </mesh>
   </CircularCarousel.PrevTrigger>
-  
+
   <CircularCarousel.NextTrigger position={[2, 0, 0]}>
-    <mesh><boxGeometry /><meshBasicMaterial color="red" /></mesh>
+    <mesh>
+      <boxGeometry />
+      <meshBasicMaterial color="red" />
+    </mesh>
   </CircularCarousel.NextTrigger>
 </CircularCarousel>
 ```
@@ -107,12 +118,15 @@ A carousel that slides items linearly (horizontally or vertically).
 
 ```tsx
 import { Canvas } from "@react-three/fiber";
-import { LinearCarousel, useLinearCarouselContext } from "@juniorxsound/react-three-components";
+import {
+  LinearCarousel,
+  useLinearCarouselContext,
+} from "@juniorxsound/react-three-components";
 
 function Item({ index }: { index: number }) {
   const { activeIndex } = useLinearCarouselContext();
   const isActive = index === activeIndex;
-  
+
   return (
     <mesh scale={isActive ? 1.2 : 1}>
       <planeGeometry args={[2, 1.5]} />
@@ -137,27 +151,27 @@ function App() {
 
 #### Props
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `children` | `ReactNode` | required | Carousel items |
-| `gap` | `number` | `0.2` | Space between items |
-| `direction` | `"horizontal" \| "vertical"` | `"horizontal"` | Slide direction |
-| `index` | `number` | - | Controlled active index |
-| `defaultIndex` | `number` | `0` | Initial index (uncontrolled) |
-| `onIndexChange` | `(index: number) => void` | - | Called when index changes |
-| `dragEnabled` | `boolean` | `true` | Enable drag gestures |
-| `dragSensitivity` | `number` | `150` | Drag sensitivity |
-| `dragAxis` | `"x" \| "y"` | auto | Drag axis (derived from direction) |
-| `dragConfig` | `DragConfig` | - | Additional drag options |
+| Prop              | Type                         | Default        | Description                        |
+| ----------------- | ---------------------------- | -------------- | ---------------------------------- |
+| `children`        | `ReactNode`                  | required       | Carousel items                     |
+| `gap`             | `number`                     | `0.2`          | Space between items                |
+| `direction`       | `"horizontal" \| "vertical"` | `"horizontal"` | Slide direction                    |
+| `index`           | `number`                     | -              | Controlled active index            |
+| `defaultIndex`    | `number`                     | `0`            | Initial index (uncontrolled)       |
+| `onIndexChange`   | `(index: number) => void`    | -              | Called when index changes          |
+| `dragEnabled`     | `boolean`                    | `true`         | Enable drag gestures               |
+| `dragSensitivity` | `number`                     | `150`          | Drag sensitivity                   |
+| `dragAxis`        | `"x" \| "y"`                 | auto           | Drag axis (derived from direction) |
+| `dragConfig`      | `DragConfig`                 | -              | Additional drag options            |
 
 #### Ref Methods
 
 ```tsx
 const ref = useRef<LinearCarouselRef>(null);
 
-ref.current.next();      // Go to next item (bounded)
-ref.current.prev();      // Go to previous item (bounded)
-ref.current.goTo(2);     // Go to specific index
+ref.current.next(); // Go to next item (bounded)
+ref.current.prev(); // Go to previous item (bounded)
+ref.current.goTo(2); // Go to specific index
 ```
 
 > Note: LinearCarousel is bounded (doesn't wrap around), unlike CircularCarousel which loops infinitely.
@@ -169,11 +183,11 @@ ref.current.goTo(2);     // Go to specific index
   <Item index={0} />
   <Item index={1} />
   <Item index={2} />
-  
+
   <LinearCarousel.PrevTrigger position={[-3, 0, 0]}>
     <PrevButton />
   </LinearCarousel.PrevTrigger>
-  
+
   <LinearCarousel.NextTrigger position={[3, 0, 0]}>
     <NextButton />
   </LinearCarousel.NextTrigger>

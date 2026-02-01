@@ -21,16 +21,25 @@ A React component library for 3D components built with React Three Fiber. Provid
 src/
 ├── index.ts                    # Public exports
 ├── types.ts                    # Shared types
+├── hooks/
+│   ├── index.ts                # Hook exports
+│   ├── useCarouselDrag.ts      # Shared drag gesture logic
+│   ├── useCarouselDrag.test.tsx # (tested via component integration)
+│   ├── useCarouselContext.ts   # Shared carousel context
+│   └── useCarouselContext.test.tsx
+├── utils/
+│   ├── index.ts                # Shared utilities (clamp, etc.)
+│   └── index.test.ts
 └── components/
     ├── index.ts                # Component barrel export
     ├── CircularCarousel/       # Circular carousel (rotates around axis)
     │   ├── index.ts            # Component exports
     │   ├── CircularCarousel.tsx
     │   ├── CircularCarouselTriggers.tsx
-    │   ├── context.ts          # React context for state
-    │   ├── types.ts            # Props/ref types
+    │   ├── context.ts          # Re-exports shared context with component name
+    │   ├── types.ts            # Props/ref types (re-exports shared types)
     │   ├── constants.ts        # Default values
-    │   ├── utils.ts            # Helper functions
+    │   ├── utils.ts            # Component-specific helpers
     │   ├── CircularCarousel.test.tsx
     │   └── CircularCarousel.stories.tsx
     └── LinearCarousel/         # Linear carousel (slides in direction)
@@ -75,24 +84,23 @@ export type ContextValue = {
 
 ### 2. Context (`context.ts`)
 
+Component contexts re-export from the shared hook with component-specific error messages:
+
 ```typescript
-import { createContext, useContext } from "react";
-import type { ContextValue } from "./types";
+import { CarouselContext, useCarouselContext } from "../../hooks";
 
-export const ComponentContext = createContext<ContextValue | null>(null);
+export { CarouselContext as LinearCarouselContext };
 
-export function useComponentContext() {
-  const ctx = useContext(ComponentContext);
-  if (!ctx) throw new Error("Must be used within Component");
-  return ctx;
+export function useLinearCarouselContext() {
+  return useCarouselContext("LinearCarousel");
 }
 ```
 
 ### 3. Main Component (`Component.tsx`)
 
-- Use `forwardRef` with `useImperativeHandle` for ref API
+- Use `forwardRef` with `useImperativeHandle` for ref API (React 18 compatibility)
 - Support both controlled (`index`) and uncontrolled (`defaultIndex`) modes
-- Use `useSpring` for animations, `useDrag` for gestures
+- Use shared `useCarouselDrag` hook for spring animations and drag gestures
 - Filter children to separate items from trigger components
 - Provide context to children
 
@@ -111,11 +119,40 @@ export function ComponentNextTrigger({ children, ...props }: GroupProps) {
 
 ### 5. Compound Component Pattern
 
+Use `Object.assign` to attach trigger components directly to the `forwardRef` result:
+
 ```typescript
-(ComponentBase as ComponentType).NextTrigger = ComponentNextTrigger;
-(ComponentBase as ComponentType).PrevTrigger = ComponentPrevTrigger;
-export const Component = ComponentBase as ComponentType;
+export const Component = Object.assign(
+  forwardRef<ComponentRef, ComponentProps>(function Component(props, ref) {
+    // ... component implementation
+  }),
+  {
+    NextTrigger: ComponentNextTrigger,
+    PrevTrigger: ComponentPrevTrigger,
+  }
+);
 ```
+
+## Shared Hooks
+
+### `useCarouselDrag`
+
+Encapsulates all drag gesture logic shared between carousel components:
+
+- Spring animation setup (`@react-spring/web`)
+- Drag gesture handling (`@use-gesture/react`)
+- Cursor management
+- Touch action styles
+
+Components provide callbacks for their specific index/offset calculations:
+- `calculateIndexFromOffset` - Convert offset to nearest index
+- `calculateTargetIndex` - Determine final index after drag ends
+- `calculateTargetOffset` - Convert index back to target offset
+- `onNavigate` - Called when navigation completes
+
+### `useCarouselContext`
+
+Shared context hook that throws with a component-specific error message when used outside a provider.
 
 ## Code Style
 

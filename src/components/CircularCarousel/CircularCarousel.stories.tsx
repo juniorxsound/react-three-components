@@ -124,7 +124,7 @@ function CarouselFloatingShape({
 }
 
 export const FloatingObjects: Story = {
-  render: ({ itemCount, ...args }) => (
+  render: ({ itemCount: _itemCount, ...args }) => (
     <CircularCarousel {...args}>
       <CarouselFloatingShape type="box" index={0} />
       <CarouselFloatingShape type="sphere" index={1} />

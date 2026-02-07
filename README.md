@@ -196,6 +196,49 @@ ref.current.goTo(2); // Go to specific index
 
 ---
 
+### useGLTFMaterialVariants
+
+Parse and assign [KHR_materials_variants](https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_materials_variants) on an already-loaded glTF. Load the model with `useGLTF` (Drei), `useLoader(GLTFLoader, url)`, or your own loader; then pass the result. The hook applies the first variant initially (or pass `{ variant: "name" }` to avoid flashing). Returns `variants`, `activeVariant`, and `setVariant`. Suspends until the variant is applied—wrap in a `<Suspense>` boundary.
+
+```tsx
+import { Suspense } from "react";
+import { Canvas } from "@react-three/fiber";
+import { useGLTF } from "@react-three/drei";
+import { useGLTFMaterialVariants } from "@juniorxsound/react-three-components";
+
+function Shoe() {
+  const gltf = useGLTF("/MaterialsVariantsShoe.gltf");
+  const { variants, activeVariant, setVariant } = useGLTFMaterialVariants(
+    gltf,
+    { variant: "midnight" }
+  );
+  return (
+    <group>
+      <primitive object={gltf.scene} />
+      {/* Use setVariant(name) to switch variants */}
+    </group>
+  );
+}
+
+function App() {
+  return (
+    <Canvas>
+      <Suspense fallback={null}>
+        <Shoe />
+      </Suspense>
+    </Canvas>
+  );
+}
+```
+
+| Return        | Type       | Description                          |
+| ------------- | ---------- | ------------------------------------ |
+| `variants`    | `string[]` | Variant names from the extension.    |
+| `activeVariant` | `string \| null` | Currently active variant name. |
+| `setVariant`  | `(name: string) => void` | Switch to a variant by name. |
+
+---
+
 ## Context Hooks
 
 Access carousel state from any child component:

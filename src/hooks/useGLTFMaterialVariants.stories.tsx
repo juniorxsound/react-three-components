@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { startTransition, Suspense, useEffect } from "react";
-import { Box, CameraControls, Environment, useGLTF } from "@react-three/drei";
+import { CameraControls, Environment, useGLTF } from "@react-three/drei";
 import { useGLTFMaterialVariants } from "./useGLTFMaterialVariants";
 
 const MATERIALS_VARIANTS_SHOE_URL =

@@ -37,6 +37,7 @@ function ShoeWithVariants({ variant }: { variant: string }) {
   const { setVariant } = useGLTFMaterialVariants(gltf, { variant });
 
   useEffect(() => {
+    // startTransition is used here because setVariants suspends until the variant is applied (if you want to avoid Suspense fallback while the variant is applying wrap it in startTransition)
     startTransition(() => {
       setVariant(variant);
     });

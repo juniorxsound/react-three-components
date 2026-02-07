@@ -8,6 +8,9 @@ export {
   LinearCarouselPrevTrigger,
   useLinearCarouselContext,
 } from "./components";
+export {
+  useGLTFMaterialVariants,
+} from "./hooks";
 export type {
   CircularCarouselProps,
   CircularCarouselRef,
@@ -17,4 +20,9 @@ export type {
   LinearCarouselContextValue,
   DragConfig,
 } from "./components";
+export type {
+  GLTFWithVariants,
+  UseGLTFMaterialVariantsOptions,
+  UseGLTFMaterialVariantsResult,
+} from "./hooks";
 export type { GroupProps } from "./types";

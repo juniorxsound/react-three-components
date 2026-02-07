@@ -11,3 +11,10 @@ export {
   useCarouselContext,
   type CarouselContextValue,
 } from "./useCarouselContext";
+
+export {
+  useGLTFMaterialVariants,
+  type GLTFWithVariants,
+  type UseGLTFMaterialVariantsOptions,
+  type UseGLTFMaterialVariantsResult,
+} from "./useGLTFMaterialVariants";
